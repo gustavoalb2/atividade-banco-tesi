@@ -156,8 +156,8 @@ class HomeBanco():
                 
     def salvar_banco(self):
         banco = Banco(self.ent_nome.get(), self.ent_numero.get())
-        if self.ent_nome.get() == '' and self.ent_numero.get() == '':
-            messagebox.showerror('Erro', 'Preencha todos os campos', parent=self.cadastrar_banco)
+        if self.ent_nome.get() == '' or self.ent_numero.get() == '':
+            messagebox.showerror('Erro', 'Preencha todos os campos')
         else:
             messagebox.showinfo('Sucesso', 'Banco cadastrado com sucesso')
             self.voltar()
@@ -168,7 +168,7 @@ class HomeBanco():
         self.janela.geometry('500x300')
         
         linha = self.tree_banco.selection()
-        linha_selecionada = self.tree_banco.item(linha, "values")
+        linha_selecionada = self.tree_banco.item(linha, 'values')
         
         self.frame = tk.Frame(self.janela)
         self.frame.pack()
@@ -178,28 +178,39 @@ class HomeBanco():
         
         self.ent_id = tk.Entry(self.frame)
         self.ent_id.grid(row=0, column=1)
-        self.ent_id.insert('end', linha_selecionada[0])
+        self.ent_id.insert('end', values=linha_selecionada[0])
         
         self.lbl_nome = tk.Label(self.frame, text='Nome:')
         self.lbl_nome.grid(row=1, column=0)
         
         self.ent_nome = tk.Entry(self.frame)
         self.ent_nome.grid(row=1, column=1)
-        self.ent_nome.insert('end', linha_selecionada[1])
+        self.ent_nome.insert('end', values=linha_selecionada[1])
         
         self.lbl_numero = tk.Label(self.frame, text='Agencia:')
         self.lbl_numero.grid(row=2, column=0)
         
         self.ent_numero = tk.Entry(self.frame)
         self.ent_numero.grid(row=2, column=1)
-        self.ent_numero.insert('end', linha_selecionada[2])
+        self.ent_numero.insert('end', values=linha_selecionada[2])
         
-        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_banco)
+        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.confirmar_edicao)
         self.btn_salvar.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
         
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
         self.btn_voltar.grid(row=4, column=0, columnspan=2, sticky=tk.NSEW)
         
+    def confirmar_edicao(self):
+        id = self.ent_id.get()
+        nome = self.ent_nome.get()
+        numero = self.ent_numero.get()
+        selecionado = self.tree_banco.selection()
+        if id == '' or nome == '' or numero == '':
+            messagebox.showinfo('Aviso', 'Por favor, todos os campos são obrigatórios.')
+        else:
+            self.tree_banco.item(selecionado, values=(id, nome, numero))
+            self.voltar()
+            
     def cadastrar_conta(self):
         self.limpar_tela()
         self.janela.title('Cadastrar conta')
