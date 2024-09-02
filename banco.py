@@ -1,16 +1,32 @@
-
 class Banco:
-    def __init__(self, nome, endereco, telefone):
-        self.nome = nome
-        self.endereco = endereco
-        self.telefone = telefone
-
-    def cadastrar_banco(self):
-        # Lógica para cadastrar o banco no sistema
-        # Aqui você pode adicionar o código necessário para armazenar as informações do banco
-
-        print("Banco cadastrado com sucesso!")
-
-# Exemplo de uso da classe
-novo_banco = Banco("Meu Banco", "Rua Principal, 123", "(00) 1234-5678")
-novo_banco.cadastrar_banco()
+    id_banco = 0
+    bancos = []
+    def __init__(self, nome, numero):
+        self._id = Banco.id_banco + 1
+        self.__numero = numero
+        self.__nome = nome
+        self.__contas = []
+        Banco.id_banco += 1
+        Banco.bancos.append(self)
+    
+    def adicionar_banco(self, banco):
+        Banco.bancos.append(banco)
+        
+    def adicionar_conta(self, conta):
+        self.__contas.append(conta)
+    
+    @property
+    def get_id(self):
+        return self._id
+    
+    @property    
+    def get_numero(self):
+        return self.__numero
+    
+    @property
+    def get_nome(self):
+        return self.__nome
+    
+    @property
+    def get_contas(self):
+        return self.__contas
