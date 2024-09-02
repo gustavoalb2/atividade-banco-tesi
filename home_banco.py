@@ -160,7 +160,6 @@ class HomeBanco():
             messagebox.showerror('Erro', 'Preencha todos os campos', parent=self.cadastrar_banco)
         else:
             messagebox.showinfo('Sucesso', 'Banco cadastrado com sucesso')
-            self.ent_nome.delete(0, tk.END)
             self.voltar()
     
     def editar_banco(self):
