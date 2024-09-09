@@ -5,28 +5,38 @@ class Banco:
         self._id = Banco.id_banco + 1
         self.__numero = numero
         self.__nome = nome
-        self.__contas = []
         Banco.id_banco += 1
         Banco.bancos.append(self)
     
     def adicionar_banco(self, banco):
         Banco.bancos.append(banco)
         
-    def adicionar_conta(self, conta):
-        self.__contas.append(conta)
+    @classmethod
+    def listar_banco(cls):
+        return cls.bancos
     
     @property
-    def get_id(self):
+    def id(self):
         return self._id
+    @id.setter
+    def set_id(self, id):
+        self._id = id
     
     @property    
-    def get_numero(self):
+    def numero(self):
         return self.__numero
+    @numero.setter
+    def set_numero(self, numero):
+        self.__numero = numero
     
     @property
-    def get_nome(self):
+    def nome(self):
         return self.__nome
     
+    @nome.setter
+    def set_nome(self, nome):
+        self.__nome = nome
+    
     @property
-    def get_contas(self):
+    def contas(self):
         return self.__contas
