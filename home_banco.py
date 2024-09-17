@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox, simpledialog
+import tkinter.font as tkFont
 from banco import Banco
 from clientes import Cliente
 from conta import Conta
@@ -13,17 +13,30 @@ b3=Banco('Nubank', 9876)
 b4=Banco('PicPay', 5432)
 
 #Criação de clientes para teste
-cli1=Cliente('Mateus', 'Panorama', '000.111.222.33')
+cli1=Cliente('Gustavo', 'Alto Alegre', '000.111.222.33')
 cli2=Cliente('Jocely', 'Rui lino', '444.555.666.77')
-cli3=Cliente('Kaleb', 'Algum lugar', '888.999.379.52')
-
-
 
 class HomeBanco():
     def __init__ (self, master):
         self.janela = master
         self.janela.title('Banco')
         self.janela.geometry('500x300')
+        
+        self.fonte_titulo = tkFont.Font(size=25)
+        self.frame = tk.Frame(self.janela)
+        self.frame.pack()
+        
+        lbl_titulo = tk.Label(self.frame, text='Bem vindo ao Banco', font=self.fonte_titulo)
+        lbl_titulo.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
+        
+        self.btn_cadastrarCliente = tk.Button(self.frame, text='Cadastrar Cliente', command=self.cadastrar_clientes)
+        self.btn_cadastrarCliente.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
+        
+        self.btn_cadastrarBanco = tk.Button(self.frame, text='Cadastrar Banco', command=self.cadastrar_banco)
+        self.btn_cadastrarBanco.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
+        
+        self.btn_cadastrarConta = tk.Button(self.frame, text='Cadastrar Conta', command=self.cadastrar_conta)
+        self.btn_cadastrarConta.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
         
         self.mnu_barra = tk.Menu(self.janela)
         self.mnu_contas = tk.Menu(self.mnu_barra, tearoff=0)
@@ -84,6 +97,9 @@ class HomeBanco():
         self.btn_editarCliente = tk.Button(self.frame, text='Editar', command=self.editar_cliente)
         self.btn_editarCliente.grid(row=1, column=1, sticky=tk.NSEW)
         
+        self.btn_remover_cliente = tk.Button(self.frame, text='Remover Cliente', command=self.remover_cliente)
+        self.btn_remover_cliente.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW)
+        
         self.tree_clientes.config(yscrollcommand=scb.set)
         scb.config(command=self.tree_clientes.yview)
         
@@ -129,7 +145,10 @@ class HomeBanco():
     
     def editar_cliente(self):
         selecionado = self.tree_clientes.selection()
-        linha_selecionada = self.tree_clientes.item(selecionado, 'values')      
+        if not selecionado:
+            messagebox.showerror('Erro', 'Nenhuma linha selecionada')
+            return    
+        linha_selecionada = self.tree_clientes.item(selecionado, 'values')
                      
         self.top_editar = tk.Toplevel(self.janela)
         self.top_editar.title('Editar Cliente')
@@ -171,17 +190,46 @@ class HomeBanco():
     
     def confirmar_edicaoCliente(self):
         selecionado = self.tree_clientes.selection()
-        if selecionado:
-            linha_selecionada = self.tree_clientes.item(selecionado, 'values')
-            id = linha_selecionada[0]
-            nome = self.ent_nome.get()
-            endereco = self.ent_endereco.get()
-            cpf = self.ent_cpf.get()
-            if nome == '' or endereco == '' or cpf == '':
-                messagebox.showinfo('Aviso', 'Por favor, todos os campos são obrigatórios.')
-            else:
-                self.tree_clientes.item(selecionado, values=(id, nome, endereco, cpf))
-                self.fechar_janela()
+        if not selecionado:
+            messagebox.showerror('Erro', 'Nenhuma linha selecionada')
+            return
+        
+        linha_selecionada = self.tree_clientes.item(selecionado, 'values')
+        id = linha_selecionada[0]
+        nome = self.ent_nome.get()
+        endereco = self.ent_endereco.get()
+        cpf = self.ent_cpf.get()
+
+        for cliente in Cliente.clientes:
+            if cliente.id == id:
+                cliente.nome = nome
+                cliente.endereco = endereco
+                cliente.cpf = cpf
+                break
+        
+        # Atualize a Treeview com os novos valores
+        self.tree_clientes.item(selecionado, values=(id, nome, endereco, cpf))
+        
+        messagebox.showinfo('Sucesso', 'Cliente atualizado com sucesso')
+        self.fechar_janela()
+    
+    def remover_cliente(self):
+        selecionado = self.tree_clientes.selection()
+        if not selecionado:
+            messagebox.showerror('Erro', 'Nenhuma linha selecionada')
+            return
+        
+        linha_selecionada = self.tree_clientes.item(selecionado, 'values')
+        cliente_id = int(linha_selecionada[0])
+        
+        resultado = Cliente.remover_cliente(cliente_id)
+        if resultado is None:
+            messagebox.showerror('Erro', 'Cliente não encontrado')
+        elif resultado:
+            self.tree_clientes.delete(selecionado)
+            messagebox.showinfo('Sucesso', 'Cliente removido com sucesso')
+        else:
+            messagebox.showerror('Erro', 'Cliente está vinculado a uma conta e não pode ser removido')
     
     def cadastrar_banco(self):
         self.limpar_tela()
@@ -300,34 +348,7 @@ class HomeBanco():
             else:
                 self.tree_banco.item(selecionado, values=(id, nome, numero))
                 self.fechar_janela()
-    
-    def listar_contas(self):
-        self.limpar_tela()
-        self.janela.title('Listar contas')
-        self.janela.geometry('650x300')
-        self.frame = tk.Frame(self.janela)
-        self.frame.pack()
-                
-        colunas = ['tipo','id', 'titular', 'saldo']
-        self.tree_contas = ttk.Treeview(self.frame, show='headings', columns=colunas)
-        self.tree_contas.heading('tipo', text='tipo')
-        self.tree_contas.heading('id', text='ID')
-        self.tree_contas.heading('titular', text='Titular')        
-        self.tree_contas.heading('saldo', text='Saldo')
-        self.tree_contas.grid(row=0, column=0)
-        
-        for i in Conta.listar_contas:
-            self.tree_contas.insert('', tk.END, values=(i.titular, i.saldo))
-        
-        self.tree_contas.column('tipo', width=145)
-        self.tree_contas.column('id', width=50)
-        self.tree_contas.column('titular', width=145)
-        self.tree_contas.column('saldo', width=145)
-        
-        self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
-        self.btn_voltar.grid(row=1, column=0, sticky=tk.NSEW)
-    
-                
+                    
     def cadastrar_conta(self):
             self.limpar_tela()
             self.janela.title('Cadastrar conta')
@@ -370,14 +391,138 @@ class HomeBanco():
             self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
             self.btn_voltar.grid(row=6, column=0, columnspan=2, sticky=tk.NSEW)
             
-    def salvar_conta(self):
-        conta = Conta(self.cbx_titular, self.cbx_banco.get())
-        if self.cbx_titular.get() == '' or self.cbx_banco.get() == '':
-            messagebox.showerror('Erro', 'Preencha todos os campos')
-        else:
-            messagebox.showinfo('Sucesso', 'Banco cadastrado com sucesso')
-            self.voltar()
+    def listar_contas(self):
+        self.limpar_tela()
+        self.janela.title('Listar contas')
+        self.janela.geometry('800x500')
+        self.frame = tk.Frame(self.janela)
+        self.frame.pack()
+                
+        colunas = ['id', 'titular', 'tipo', 'saldo', 'banco']
+        self.tree_contas = ttk.Treeview(self.frame, show='headings', columns=colunas)
+        self.tree_contas.heading('id', text='ID')
+        self.tree_contas.heading('titular', text='Titular')
+        self.tree_contas.heading('tipo', text='Tipo')
+        self.tree_contas.heading('saldo', text='Saldo')
+        self.tree_contas.heading('banco', text='Banco')
+        self.tree_contas.grid(row=0, column=0)
+                
+        for i in Conta.contas:
+            titular_nome = i.titular if isinstance(i.titular, str) else i.titular.get()
+            banco_nome = i.banco if isinstance(i.banco, str) else i.banco.get()
+            self.tree_contas.insert('', tk.END, values=(i.id, titular_nome, 'Conta Poupança' if isinstance(i, ContaPoupanca) else 'Conta Corrente', i.saldo, banco_nome))
         
+        self.tree_contas.column('id', width=50)
+        self.tree_contas.column('titular', width=145)
+        self.tree_contas.column('tipo', width=145)
+        self.tree_contas.column('saldo', width=145)
+        self.tree_contas.column('banco', width=145)
+        
+        self.btn_sacar = tk.Button(self.frame, text='Sacar', command=self.sacar)
+        self.btn_sacar.grid(row=5, column=0, sticky=tk.NSEW)
+        
+        self.btn_depositar = tk.Button(self.frame, text='Depositar', command=self.depositar)
+        self.btn_depositar.grid(row=6, column=0, sticky=tk.NSEW)
+        
+        self.btn_encerrar_conta = tk.Button(self.frame, text='Encerrar Conta', command=self.encerrar_conta)
+        self.btn_encerrar_conta.grid(row=7, column=0, columnspan=2, sticky=tk.NSEW)
+        
+        self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
+        self.btn_voltar.grid(row=8, column=0, sticky=tk.NSEW)
+        
+    
+    def salvar_conta(self):
+        titular = self.cbx_titular.get()
+        banco = self.cbx_banco.get()
+        tipo_conta = self.cbx_tipoConta.get()
+        saldo = self.ent_saldo.get()
+
+        if titular == '' or banco == '' or tipo_conta == '' or saldo == '':
+            messagebox.showerror('Erro', 'Preencha todos os campos')
+            return
+
+        try:
+            saldo = float(saldo)
+        except ValueError:
+            messagebox.showerror('Erro', 'Saldo deve ser um número válido')
+            return
+
+        if tipo_conta == 'Corrente':
+            conta = ContaCorrente(titular, saldo, banco)  
+        elif tipo_conta == 'Poupança':
+            conta = ContaPoupanca(titular, saldo, banco)  
+        else:
+            messagebox.showerror('Erro', 'Tipo de conta inválido')
+            return
+
+        Conta.contas.append(conta)
+        messagebox.showinfo('Sucesso', 'Conta criada com sucesso')
+        self.voltar()
+        
+    def encerrar_conta(self):
+        selecionado = self.tree_contas.selection()
+        if not selecionado:
+            messagebox.showerror('Erro', 'Nenhuma linha selecionada')
+            return
+        
+        linha_selecionada = self.tree_contas.item(selecionado, 'values')
+        conta_id = int(linha_selecionada[0])
+        
+        resultado = Conta.encerrar_conta(conta_id)
+        if resultado is None:
+            messagebox.showerror('Erro', 'Conta não encontrada')
+        elif resultado:
+            self.tree_contas.delete(selecionado)
+            messagebox.showinfo('Sucesso', 'Conta encerrada com sucesso')
+        else:
+            messagebox.showerror('Erro', 'Conta não pode ser encerrada, tem dinheiro na conta')
+    
+    def sacar(self):
+        item_selecionado = self.tree_contas.selection()
+        if not item_selecionado:
+            messagebox.showerror('Erro', 'Selecione uma conta')
+            return
+        
+        valor = simpledialog.askfloat('Sacar', 'Digite o valor do saque:')
+        if valor is None or valor <= 0:
+            messagebox.showerror('Erro', 'Valor inválido')
+            return
+        
+        item = self.tree_contas.item(item_selecionado)
+        conta_id = item['values'][0]
+        conta = next((conta for conta in Conta.contas if conta.id == conta_id), None)
+        
+        if conta:
+            if conta.sacar(valor):
+                self.tree_contas.item(item_selecionado, values=(conta.id, conta.titular, 'Conta Poupança' if isinstance(conta, ContaPoupanca) else 'Conta Corrente', conta.saldo, conta.banco))
+                messagebox.showinfo('Sucesso', 'Saque realizado com sucesso')
+            else:
+                messagebox.showerror('Erro', 'Saldo insuficiente')
+        else:
+            messagebox.showerror('Erro', 'Conta não encontrada')
+
+    def depositar(self):
+        item_selecionado = self.tree_contas.selection()
+        if not item_selecionado:
+            messagebox.showerror('Erro', 'Selecione uma conta')
+            return
+        
+        valor = simpledialog.askfloat('Depositar', 'Digite o valor do depósito:')
+        if valor is None or valor <= 0:
+            messagebox.showerror('Erro', 'Valor inválido')
+            return
+        
+        item = self.tree_contas.item(item_selecionado)
+        conta_id = item['values'][0]
+        conta = next((conta for conta in Conta.contas if conta.id == conta_id), None)
+        
+        if conta:
+            conta.depositar(valor)
+            self.tree_contas.item(item_selecionado, values=(conta.id, conta.titular, 'Conta Poupança' if isinstance(conta, ContaPoupanca) else 'Conta Corrente', conta.saldo, conta.banco))
+            messagebox.showinfo('Sucesso', 'Depósito realizado com sucesso')
+        else:
+            messagebox.showerror('Erro', 'Conta não encontrada')
+            
     def desabilita_fechar(self):
         pass
         

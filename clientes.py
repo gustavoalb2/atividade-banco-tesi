@@ -1,3 +1,5 @@
+from conta import Conta
+
 class Cliente:
     id_cliente = 0    
     clientes = []
@@ -11,10 +13,6 @@ class Cliente:
     
     def adicionar_cliente(self, cliente):
         Cliente.clientes.append(cliente)
-    
-    @classmethod
-    def listar_clientes(cls):
-        return cls.clientes
     
     @property
     def id(self):
@@ -32,7 +30,17 @@ class Cliente:
     def cpf(self):
         return self.__cpf
     
-        
+    @classmethod
+    def listar_clientes(cls):
+        return cls.clientes
     
-
-    
+    @classmethod
+    def remover_cliente(cls, cliente_id):
+        cliente = next((c for c in cls.clientes if c.id == cliente_id), None)
+        if cliente:
+            if not any(isinstance(conta.titular, Cliente) and conta.titular.id == cliente_id for conta in Conta.contas):
+                cls.clientes.remove(cliente)
+                return True
+            else:
+                return False
+        return None

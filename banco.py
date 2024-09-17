@@ -1,3 +1,4 @@
+from conta import Conta
 class Banco:
     id_banco = 0
     bancos = []
@@ -18,25 +19,15 @@ class Banco:
     @property
     def id(self):
         return self._id
-    @id.setter
-    def set_id(self, id):
-        self._id = id
     
     @property    
     def numero(self):
         return self.__numero
-    @numero.setter
-    def set_numero(self, numero):
-        self.__numero = numero
     
     @property
     def nome(self):
         return self.__nome
     
-    @nome.setter
-    def set_nome(self, nome):
-        self.__nome = nome
-    
     @property
     def contas(self):
-        return self.__contas
+        return [conta for conta in Conta.contas if conta.banco == self]
