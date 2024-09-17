@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import tkinter.font as tkFont
+from PIL import Image
+from PIL import ImageTk
 from banco import Banco
 from clientes import Cliente
 from conta import Conta
@@ -15,28 +17,22 @@ b4=Banco('PicPay', 5432)
 #Criação de clientes para teste
 cli1=Cliente('Gustavo', 'Alto Alegre', '000.111.222.33')
 cli2=Cliente('Jocely', 'Rui lino', '444.555.666.77')
+cli2=Cliente('Fulano', 'Algum lugar', '444.555.666.77')
+cli2=Cliente('Ciclano', 'Lugar Algum', '444.555.666.77')
 
 class HomeBanco():
     def __init__ (self, master):
         self.janela = master
         self.janela.title('Banco')
-        self.janela.geometry('500x300')
+        self.janela.geometry('450x500')
+        self.logo_bc = "imagem/pngegg (1).png"
+        self.fonte_titulo = tkFont.Font(size=15)
+
+        self.carregar_imagem()
+        self.exibir_imagem(self.janela)
         
-        self.fonte_titulo = tkFont.Font(size=25)
-        self.frame = tk.Frame(self.janela)
-        self.frame.pack()
-        
-        lbl_titulo = tk.Label(self.frame, text='Bem vindo ao Banco', font=self.fonte_titulo)
+        lbl_titulo = tk.Label(self.janela, text='Bem vindo ao Banco', bg='#4aea98', font=self.fonte_titulo)
         lbl_titulo.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
-        
-        self.btn_cadastrarCliente = tk.Button(self.frame, text='Cadastrar Cliente', command=self.cadastrar_clientes)
-        self.btn_cadastrarCliente.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
-        
-        self.btn_cadastrarBanco = tk.Button(self.frame, text='Cadastrar Banco', command=self.cadastrar_banco)
-        self.btn_cadastrarBanco.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
-        
-        self.btn_cadastrarConta = tk.Button(self.frame, text='Cadastrar Conta', command=self.cadastrar_conta)
-        self.btn_cadastrarConta.pack(fill=tk.X, pady=10, padx=10, ipadx=10, ipady=10, expand=True, side=tk.TOP)
         
         self.mnu_barra = tk.Menu(self.janela)
         self.mnu_contas = tk.Menu(self.mnu_barra, tearoff=0)
@@ -59,6 +55,19 @@ class HomeBanco():
         self.mnu_banco.add_command(label='Cadastrar banco', command=self.cadastrar_banco)
         
         self.janela.config(menu=self.mnu_barra)
+        
+    def carregar_imagem(self):
+        # Carrega a imagem do logotipo
+        self.logo = Image.open(self.logo_bc)
+        self.logo = self.logo.resize((400, 400)) 
+        
+    def exibir_imagem(self, janela):
+        # Cria um objeto ImageTk a partir da imagem do logotipo
+        self.logo = ImageTk.PhotoImage(self.logo)
+
+        # Cria um widget Label para exibir a imagem do logotipo
+        self.label_logo = tk.Label(janela, image=self.logo, borderwidth=0)
+        self.label_logo.pack()
     
     def limpar_tela(self):
         for widget in self.janela.winfo_children():
@@ -87,18 +96,23 @@ class HomeBanco():
         self.tree_clientes.column('nome', width=145)
         self.tree_clientes.column('endereco', width=145)
         self.tree_clientes.column('cpf', width=145)
+                    
+        # Configurar tags de cor
+        self.tree_clientes.tag_configure('oddrow', background='lightblue')
+        self.tree_clientes.tag_configure('evenrow', background='white')
         
-        for i in Cliente.clientes:
-            self.tree_clientes.insert('', 'end', values=(i.id, i.nome, i.endereco, i.cpf))
+        for index, i in enumerate(Cliente.clientes):
+            tag = 'oddrow' if index % 2 == 0 else 'evenrow'
+            self.tree_clientes.insert('', 'end', values=(i.id, i.nome, i.endereco, i.cpf), tags=(tag,))
         
-        self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
-        self.btn_voltar.grid(row=1, column=0, sticky=tk.NSEW)
+        self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar, background='yellow')
+        self.btn_voltar.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW)
         
-        self.btn_editarCliente = tk.Button(self.frame, text='Editar', command=self.editar_cliente)
+        self.btn_editarCliente = tk.Button(self.frame, text='Editar', command=self.editar_cliente, background='green')
         self.btn_editarCliente.grid(row=1, column=1, sticky=tk.NSEW)
         
-        self.btn_remover_cliente = tk.Button(self.frame, text='Remover Cliente', command=self.remover_cliente)
-        self.btn_remover_cliente.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW)
+        self.btn_remover_cliente = tk.Button(self.frame, text='Remover Cliente', command=self.remover_cliente, background='red')
+        self.btn_remover_cliente.grid(row=1, column=0, sticky=tk.NSEW)
         
         self.tree_clientes.config(yscrollcommand=scb.set)
         scb.config(command=self.tree_clientes.yview)
@@ -129,7 +143,7 @@ class HomeBanco():
         self.ent_cpf = tk.Entry(self.frame)
         self.ent_cpf.grid(row=3, column=1)
         
-        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_cliente)
+        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_cliente, bg='green')
         self.btn_salvar.grid(row=4, column=0, columnspan=2, sticky=tk.NSEW)
         
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
@@ -177,12 +191,12 @@ class HomeBanco():
         self.ent_cpf = tk.Entry(self.frame)
         self.ent_cpf.grid(row=3, column=1)
         self.ent_cpf.insert('end', linha_selecionada[3])
-            
-        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.confirmar_edicaoCliente)
-        self.btn_salvar.grid(row=4, column=0, columnspan=2, sticky=tk.NSEW)
+           
+        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.confirmar_edicaoCliente, background='green')
+        self.btn_salvar.grid(row=4, column=0,columnspan=2, sticky=tk.NSEW, pady=10)
             
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.fechar_janela)
-        self.btn_voltar.grid(row=5, column=0, columnspan=2, sticky=tk.NSEW)
+        self.btn_voltar.grid(row=5, column=0,columnspan=2, sticky=tk.NSEW)
             
         self.top_editar.grab_set() # Impede a interação com a janela Tk
         self.janela.protocol("WM_DELETE_WINDOW", self.desabilita_fechar)
@@ -207,7 +221,6 @@ class HomeBanco():
                 cliente.cpf = cpf
                 break
         
-        # Atualize a Treeview com os novos valores
         self.tree_clientes.item(selecionado, values=(id, nome, endereco, cpf))
         
         messagebox.showinfo('Sucesso', 'Cliente atualizado com sucesso')
@@ -251,7 +264,7 @@ class HomeBanco():
         self.ent_numero = tk.Entry(self.frame)
         self.ent_numero.grid(row=2, column=1)
         
-        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_banco)
+        self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_banco, bg='green')
         self.btn_salvar.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
         
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
@@ -269,24 +282,29 @@ class HomeBanco():
         scb = ttk.Scrollbar(self.frame, orient='vertical')
         scb.grid(row=0, column=2, sticky=tk.NS)
         
-        colunas = ['id','numero', 'nome']
+        colunas = ['id', 'nome', 'numero']
         self.tree_banco = ttk.Treeview(self.frame, show='headings', columns=colunas)
         self.tree_banco.heading('id', text='ID')
-        self.tree_banco.heading('numero', text='Agencia')
         self.tree_banco.heading('nome', text='Nome')
+        self.tree_banco.heading('numero', text='Agencia')
         self.tree_banco.grid(row=0, column=0, columnspan=2)
         
-        for i in Banco.bancos:
-            self.tree_banco.insert('', 'end', values=(i.id, i.numero, i.nome))
+        # Configurar tags de cor
+        self.tree_banco.tag_configure('oddrow', background='lightblue')
+        self.tree_banco.tag_configure('evenrow', background='white')
+        
+        for index, i in enumerate(Banco.bancos):
+            tag = 'oddrow' if index % 2 == 0 else 'evenrow'
+            self.tree_banco.insert('', 'end', values=(i.id, i.nome, i.numero), tags=(tag,))
             
         self.tree_banco.column('id', width=50)
-        self.tree_banco.column('numero', width=100)
         self.tree_banco.column('nome', width=220)
+        self.tree_banco.column('numero', width=100)
         
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
         self.btn_voltar.grid(row=1, column=0, sticky=tk.NSEW)
         
-        self.btn_editar = tk.Button(self.frame, text='Editar', command=self.editar_banco)
+        self.btn_editar = tk.Button(self.frame, text='Editar', command=self.editar_banco, background='green')
         self.btn_editar.grid(row=1, column=1, sticky=tk.NSEW)
                    
         self.tree_banco.config(yscrollcommand=scb.set)
@@ -319,14 +337,14 @@ class HomeBanco():
             self.ent_nome.grid(row=1, column=1)
             self.ent_nome.insert('end', linha_selecionada[1])
             
-            self.lbl_numero = tk.Label(self.frame, text='Número:')
+            self.lbl_numero = tk.Label(self.frame, text='Agencia:')
             self.lbl_numero.grid(row=2, column=0)
             
             self.ent_numero = tk.Entry(self.frame)
             self.ent_numero.grid(row=2, column=1)
             self.ent_numero.insert('end', linha_selecionada[2])
             
-            self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.confirmar_edicaoBanco)
+            self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.confirmar_edicaoBanco, background='green')
             self.btn_salvar.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
             
             self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.fechar_janela)
@@ -385,7 +403,7 @@ class HomeBanco():
             self.ent_saldo = tk.Entry(self.frame)
             self.ent_saldo.grid(row=4, column=1)
             
-            self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_conta)
+            self.btn_salvar = tk.Button(self.frame, text='Salvar', command=self.salvar_conta, bg='green')
             self.btn_salvar.grid(row=5, column=0, columnspan=2, sticky=tk.NSEW)
             
             self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
@@ -394,9 +412,12 @@ class HomeBanco():
     def listar_contas(self):
         self.limpar_tela()
         self.janela.title('Listar contas')
-        self.janela.geometry('800x500')
+        self.janela.geometry('700x400')
         self.frame = tk.Frame(self.janela)
         self.frame.pack()
+        
+        scb = ttk.Scrollbar(self.frame, orient='vertical')
+        scb.grid(row=0, column=2, sticky=tk.NS)
                 
         colunas = ['id', 'titular', 'tipo', 'saldo', 'banco']
         self.tree_contas = ttk.Treeview(self.frame, show='headings', columns=colunas)
@@ -406,11 +427,16 @@ class HomeBanco():
         self.tree_contas.heading('saldo', text='Saldo')
         self.tree_contas.heading('banco', text='Banco')
         self.tree_contas.grid(row=0, column=0)
-                
-        for i in Conta.contas:
+        
+        # Configurar tags de cor
+        self.tree_contas.tag_configure('oddrow', background='lightblue')
+        self.tree_contas.tag_configure('evenrow', background='white')
+        
+        for index, i in enumerate(Conta.contas):
+            tag = 'oddrow' if index % 2 == 0 else 'evenrow'
             titular_nome = i.titular if isinstance(i.titular, str) else i.titular.get()
             banco_nome = i.banco if isinstance(i.banco, str) else i.banco.get()
-            self.tree_contas.insert('', tk.END, values=(i.id, titular_nome, 'Conta Poupança' if isinstance(i, ContaPoupanca) else 'Conta Corrente', i.saldo, banco_nome))
+            self.tree_contas.insert('', tk.END, values=(i.id, titular_nome, 'Conta Poupança' if isinstance(i, ContaPoupanca) else 'Conta Corrente', i.saldo, banco_nome), tags=(tag,))
         
         self.tree_contas.column('id', width=50)
         self.tree_contas.column('titular', width=145)
@@ -418,18 +444,23 @@ class HomeBanco():
         self.tree_contas.column('saldo', width=145)
         self.tree_contas.column('banco', width=145)
         
-        self.btn_sacar = tk.Button(self.frame, text='Sacar', command=self.sacar)
+        self.btn_sacar = tk.Button(self.frame, text='Sacar', command=self.sacar, bg='#00fff3')
         self.btn_sacar.grid(row=5, column=0, sticky=tk.NSEW)
         
-        self.btn_depositar = tk.Button(self.frame, text='Depositar', command=self.depositar)
+        self.btn_depositar = tk.Button(self.frame, text='Depositar', command=self.depositar, bg='#00ff04')
         self.btn_depositar.grid(row=6, column=0, sticky=tk.NSEW)
         
-        self.btn_encerrar_conta = tk.Button(self.frame, text='Encerrar Conta', command=self.encerrar_conta)
-        self.btn_encerrar_conta.grid(row=7, column=0, columnspan=2, sticky=tk.NSEW)
+        self.btn_rendimentos = tk.Button(self.frame, text='Rendimentos', bg='#ffc107', command=self.rendimentos)
+        self.btn_rendimentos.grid(row=7, column=0, sticky=tk.NSEW)
+
+        self.btn_encerrar_conta = tk.Button(self.frame, text='Encerrar Conta', command=self.encerrar_conta, bg='#ff3e00')
+        self.btn_encerrar_conta.grid(row=8, column=0, columnspan=2, sticky=tk.NSEW)
         
         self.btn_voltar = tk.Button(self.frame, text='Voltar', command=self.voltar)
-        self.btn_voltar.grid(row=8, column=0, sticky=tk.NSEW)
+        self.btn_voltar.grid(row=9, column=0, sticky=tk.NSEW)
         
+        self.tree_contas.config(yscrollcommand=scb.set)
+        scb.config(command=self.tree_contas.yview)
     
     def salvar_conta(self):
         titular = self.cbx_titular.get()
@@ -449,13 +480,9 @@ class HomeBanco():
 
         if tipo_conta == 'Corrente':
             conta = ContaCorrente(titular, saldo, banco)  
-        elif tipo_conta == 'Poupança':
-            conta = ContaPoupanca(titular, saldo, banco)  
         else:
-            messagebox.showerror('Erro', 'Tipo de conta inválido')
-            return
-
-        Conta.contas.append(conta)
+            conta = ContaPoupanca(titular, saldo, banco)  
+        
         messagebox.showinfo('Sucesso', 'Conta criada com sucesso')
         self.voltar()
         
@@ -523,6 +550,52 @@ class HomeBanco():
         else:
             messagebox.showerror('Erro', 'Conta não encontrada')
             
+    def gerar_relatorio(self):
+        selected_item = self.tree_contas.selection()
+        if not selected_item:
+            messagebox.showerror('Erro', 'Selecione uma conta')
+            return
+        
+        item = self.tree_contas.item(selected_item)
+        conta_id = item['values'][0]
+        conta = next((c for c in Conta.contas if c.id == conta_id), None)
+        
+        if conta:
+            nome_arquivo = conta.gerar_relatorio()
+            messagebox.showinfo('Sucesso', f'Relatório gerado: {nome_arquivo}')
+        else:
+            messagebox.showerror('Erro', 'Conta não encontrada')
+            
+    def rendimentos(self):
+        lista_contas = Conta.contas
+        contas = [f"{conta.titular}" for conta in lista_contas if isinstance(conta, ContaPoupanca)]
+        
+        if not contas:
+            messagebox.showinfo('Informação', 'Não há contas poupança disponíveis para rendimentos.')
+            return
+        
+        conta_selecionada = simpledialog.askstring('Rendimentos', 'Digite o nome do titular da conta poupança:')
+        
+        if not conta_selecionada:
+            return
+        
+        for conta in lista_contas:
+            if conta.titular == conta_selecionada:
+                conta.saldo += conta.saldo * Banco.taxaCP
+                messagebox.showinfo('Rendimento', 'Rendimento efetuado com sucesso')
+                break
+        self.atualizar_lista_contas()
+    
+    def atualizar_lista_contas(self):
+        for i in self.tree_contas.get_children():
+            self.tree_contas.delete(i)
+        
+        for i in Conta.contas:
+            titular_nome = i.titular if isinstance(i.titular, str) else i.titular.get()
+            banco_nome = i.banco if isinstance(i.banco, str) else i.banco.get()
+            self.tree_contas.insert('', tk.END, values=(i.id, titular_nome, 'Conta Poupança' if isinstance(i, ContaPoupanca) else 'Conta Corrente', i.saldo, banco_nome))
+
+    
     def desabilita_fechar(self):
         pass
         

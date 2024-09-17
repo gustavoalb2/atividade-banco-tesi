@@ -2,6 +2,8 @@ from conta import Conta
 class Banco:
     id_banco = 0
     bancos = []
+    taxaCC = 0.08
+    taxaCP = 0.03
     def __init__(self, nome, numero):
         self._id = Banco.id_banco + 1
         self.__numero = numero
